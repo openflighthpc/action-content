@@ -29,18 +29,37 @@ __meta__:
   aws_vars: &aws_vars
     variables: [ec2_id, region]
 
+# NOTE: DEVELOPERS ONLY!
+# All implementations of the status command must output one of the following
+# including the single new line character and set the status code
+# * "on\n" and exit 0 - The node is currently running
+# * "off\n" and exit 0 - The node is currently offline
+# * "unknown\n" and exit 1 - The node' status is undetermined
 status:
   help:
     summary: Check if the node is running
   default:
-    script: |
-      echo Not Supported
-      exit 1
+    script: echo unknown; exit 1
   aws:
     <<: *aws_vars
     script: |
-      echo Implement AWS power status
-      exit 1
+      status=$(aws ec2 describe-instances --instance-ids "$ec2_id" \
+                                          --region "$region" \
+                                          --query Reservations[0].Instances[0].State.Name)
+      case "$status" in
+        \"running\")
+          echo on
+          exit 0
+          ;;
+        \"stopped\")
+          echo off
+          exit 0
+          ;;
+        *)
+          echo unknown
+          exit 1
+          ;;
+      esac
   azure:
     script: |
       echo Implement AZURE power status
