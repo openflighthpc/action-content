@@ -6,10 +6,6 @@ Content configuration and basic usage guide to the OpenFlight flight-action suit
 
 Each subdirectory gives a set of configuration files and usage instructions for the flight-action tools suite. Due to the rolling nature of their development, each set should be considered independent to each other.
 
-At time of writing this guide, this content is designed to be used with:
-* [Action Server version 0.2.1](https://github.com/openflighthpc/action-server/tree/0.2.1)
-* [Action Client version 0.1.0](https://github.com/openflighthpc/action-client-ruby/tree/0.1.0)
-
 # Contributing
 
 Fork the project. Make your feature addition or bug fix. Send a pull
