@@ -48,6 +48,7 @@ class GenerateCLI < Thor
           desc: 'The AWS access key identifier'
   option :aws_sak, type: 'string', aliases: '--aws-secret-access-key',
           desc: 'The AWS secret access key'
+  option :systemd, type: :boolean, desc: 'Return a systemd compatible EnvironmentFile'
   def server
     warns = []
     warns << <<~WARN unless options.aws_aki
@@ -64,23 +65,27 @@ class GenerateCLI < Thor
       jwt: SecureRandom.uuid,
       aws_aki: options.aws_aki,
       aws_sak: options.aws_sak,
-      warns: warns
+      warns: warns,
+      systemd: options.systemd
     )
 
-    template = <<~'TEMPLATE'
+    template = <<~'ERB'
+      <% unless systemd -%>
       # NOTES:
       # 1) This output is sensitive! Please keep the jwt_shared_secret safe!
       # 2) This output is non-recoverable! Do not attempt to regenerate it!
       # 3) This output has been tested against action-server version <%= version %>
-      # 4) The set -a (/+a) must be omitted when within an EnvironmentFile in systemd
-      # 5) The unsets are optional if the env vars have not already been set
+      # 4) The unsets are optional if the env vars have not already been set
 
+      <% end # Close systemd the first time -%>
       <% if warns.any? -%>
       # WARNINGS:
       <%= warns.map { |w| "# * #{w}" }.join %>
       <% end -%>
+      <% unless systemd -%>
       set -a
 
+      <% end # Close systemd the second time -%>
       commands_config_path=<%= root %>/etc/commands.yaml
       nodes_config_path=<%= nodes_path %>
       working_directory_path=<%= root %>/libexec
@@ -91,6 +96,7 @@ class GenerateCLI < Thor
       <% if aws_sak -%>
       AWS_SECRET_ACCESS_KEY=<%= aws_sak %>
       <% end -%>
+      <% unless systemd -%>
 
       set +a
 
@@ -99,7 +105,8 @@ class GenerateCLI < Thor
       unset remote_jwt
       unset full_upstream
       unset log_level
-    TEMPLATE
+      <% end # Close systemd the third time -%>
+    ERB
 
     puts ERB.new(template, nil, '-').result(context.instance_eval { binding })
   end
