@@ -49,7 +49,7 @@ status:
     script:
       echo Implment IPMI power on
 
-on:
+'on':
   help:
     summary: Turn the node(s) on
     description: >
@@ -72,7 +72,7 @@ on:
     script:
       echo Implment IPMI power on
 
-off:
+'off':
   help:
     summary: Turn the node(s) off
     description: >
