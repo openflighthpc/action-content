@@ -1,0 +1,58 @@
+#!/bin/bash
+#==============================================================================
+# Copyright (C) 2020-present Alces Flight Ltd.
+#
+# This file is part of Action Content.
+#
+# This content and the accompanying materials are made available
+# available under the terms of the Creative Commons
+# Attribution-ShareAlike 4.0 International License which is available
+# at <https://creativecommons.org/licenses/by-sa/4.0/> or alternative
+# license terms made available by Alces Flight Ltd - please direct
+# inquiries about licensing to licensting@alces-flight.com.
+#
+# Action Content is distributed in the hope that it will be useful, but
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR
+# IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS
+# OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+# PARTICULAR PURPOSE. See the Creative Commons Attribution-ShareAlike
+# 4.0 International License for more details.
+#
+# You should have received a copy of the Creative Commons
+# Attribution-ShareAlike 4.0 International License along with
+# Action Content. If not, see:
+#
+#  https://creativecommons.org/licenses/by-sa/4.0/
+#
+# For more information on Action Content, please visit:
+# https://github.com/openflighthpc/action-content
+#==============================================================================
+
+# Get the root power directory NOT the bin dir
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )"
+
+# Create the nodes configuration file as it isn't checked into the repo
+touch $DIR/etc/nodes.yaml
+
+cat << EOF
+# NOTES:
+# 1) This output is sensitive! Please keep the jwt_shared_secret safe!
+# 2) This script is not rerunnable! Doing so will regenerate jwt_shared_secret
+# 3) The set -a (/+a) must be omitted when within an EnvironmentFile in systemd
+# 4) The unsets are optional if the env vars have not already been set
+
+set -a
+
+commands_config_path=$DIR/etc/commands.yaml
+nodes_config_path=$DIR/etc/nodes.yaml
+working_directory_path=$DIR/libexec
+jwt_shared_secret=$(cat /dev/urandom | tr -dc 'a-zA-Z1-9' | fold -w 32 | head -n 1)
+
+set +a
+
+unset remote_url
+unset remote_cluster
+unset remote_jwt
+unset full_upstream
+unset log_level
+EOF

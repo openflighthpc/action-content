@@ -15,21 +15,6 @@ At time of writing this guide, this content is designed to be used with:
 The following code block will generate the configuration variables required to use this content. This script needs to be sourced before starting the server.
 
 ```
-# NOTE: This code snippet must be ran from within the action-content/power directory!
-#       Failure to do this will result in the application being miss-configured
-# cd /path/to/action-content/power
-
-touch nodes.yaml
-cat << EOF
-set -a
-
-RACK_ENV=production
-commands_config_path=$(pwd)/commands.yaml
-nodes_config_path=$(pwd)/nodes.yaml
-working_directory_path=$(pwd)/libexec
-
-set +a
-EOF
 ```
 
 # Contributing
