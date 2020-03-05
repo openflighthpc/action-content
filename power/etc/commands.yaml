@@ -39,15 +39,15 @@ status:
   aws:
     <<: *aws_vars
     script: |
-      echo Implement AWS power on
+      echo Implement AWS power status
       exit 1
   azure:
     script: |
-      echo Implement AZURE power on
+      echo Implement AZURE power status
       exit 1
   ipmi:
     script: |
-      echo Implment IPMI power on
+      echo Implment IPMI power status
 
 'on':
   help:
@@ -108,13 +108,13 @@ reboot:
   aws:
     <<: *aws_vars
     script: |
-      echo Implement AWS power off
+      echo Implement AWS power reboot
       exit 1
   azure:
     script: |
-      echo Implement AZURE power off
+      echo Implement AZURE power reboot
       exit 1
   ipmi:
     script: |
-      echo Implment IPMI power off
+      echo Implment IPMI power reboot
 
