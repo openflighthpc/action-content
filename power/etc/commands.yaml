@@ -61,12 +61,9 @@ status:
           ;;
       esac
   azure:
-    script: |
-      echo Implement AZURE power status
-      exit 1
+    script: echo unknown; exit 1
   ipmi:
-    script: |
-      echo Implment IPMI power status
+    script: echo unknown; exit 1
 
 'on':
   help:
@@ -90,6 +87,7 @@ status:
   ipmi:
     script: |
       echo Implment IPMI power on
+      exit 1
 
 'off':
   help:
@@ -113,6 +111,7 @@ status:
   ipmi:
     script: |
       echo Implment IPMI power off
+      exit 1
 
 reboot:
   help:
@@ -136,4 +135,5 @@ reboot:
   ipmi:
     script: |
       echo Implment IPMI power reboot
+      exit 1
 
