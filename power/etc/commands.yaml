@@ -33,20 +33,20 @@ status:
   help:
     summary: Check if the node is running
   default:
-    script:
+    script: |
       echo Not Supported
       exit 1
   aws:
     <<: *aws_vars
-    script:
+    script: |
       echo Implement AWS power on
       exit 1
   azure:
-    script:
+    script: |
       echo Implement AZURE power on
       exit 1
   ipmi:
-    script:
+    script: |
       echo Implment IPMI power on
 
 'on':
@@ -56,20 +56,20 @@ status:
       Starts the boot process for a node or nodes. This command may only initiate
       the boot without checking it completes successfully.
   default:
-    script:
+    script: |
       echo Not Supported
       exit 1
   aws:
     <<: *aws_vars
-    script:
+    script: |
       echo Implement AWS power on
       exit 1
   azure:
-    script:
+    script: |
       echo Implement AZURE power on
       exit 1
   ipmi:
-    script:
+    script: |
       echo Implment IPMI power on
 
 'off':
@@ -79,20 +79,20 @@ status:
       Starts the shutdown process for a node or nodes. This command may only initiate
       the shutdown without checking it completes successfully.
   default:
-    script:
+    script: |
       echo Not Supported
       exit 1
   aws:
     <<: *aws_vars
-    script:
+    script: |
       echo Implement AWS power off
       exit 1
   azure:
-    script:
+    script: |
       echo Implement AZURE power off
       exit 1
   ipmi:
-    script:
+    script: |
       echo Implment IPMI power off
 
 reboot:
@@ -102,19 +102,19 @@ reboot:
       Starts the shutdown process for a node or nodes. This command may only initiate
       the shutdown without checking it completes successfully.
   default:
-    script:
+    script: |
       echo Not Supported
       exit 1
   aws:
     <<: *aws_vars
-    script:
+    script: |
       echo Implement AWS power off
       exit 1
   azure:
-    script:
+    script: |
       echo Implement AZURE power off
       exit 1
   ipmi:
-    script:
+    script: |
       echo Implment IPMI power off
 
