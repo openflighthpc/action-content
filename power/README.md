@@ -1,0 +1,70 @@
+# Action Content
+
+Content configuration and basic usage guide to the OpenFlight flight-action suite of tools
+
+## Overview
+
+Each subdirectory gives a set of configuration files and usage instructions for the flight-action tools suite. Due to the rolling nature of their development, each set should be considered independent to each other.
+
+At time of writing this guide, this content is designed to be used with:
+* [Action Server version 0.2.1](https://github.com/openflighthpc/action-server/tree/0.2.1)
+* [Action Client version 0.1.0](https://github.com/openflighthpc/action-client-ruby/tree/0.1.0)
+
+## Server Configuration
+
+The following code block will generate the configuration variables required to use this content. This script needs to be sourced before starting the server.
+
+```
+# NOTE: This code snippet must be ran from within the action-content/power directory!
+#       Failure to do this will result in the application being miss-configured
+# cd /path/to/action-content/power
+
+touch nodes.yaml
+cat << EOF
+set -a
+
+RACK_ENV=production
+commands_config_path=$(pwd)/commands.yaml
+nodes_config_path=$(pwd)/nodes.yaml
+working_directory_path=$(pwd)/libexec
+
+set +a
+EOF
+```
+
+# Contributing
+
+Fork the project. Make your feature addition or bug fix. Send a pull
+request. Bonus points for topic branches.
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
+
+# Copyright and License
+
+Creative Commons Attribution-ShareAlike 4.0 License, see [LICENSE.txt](LICENSE.txt) for details.
+
+Copyright (C) 2020-present Alces Flight Ltd.
+
+You should have received a copy of the license along with this work.
+If not, see <http://creativecommons.org/licenses/by-sa/4.0/>.
+
+![Creative Commons License](https://i.creativecommons.org/l/by-sa/4.0/88x31.png)
+
+Action Content is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/).
+
+Based on a work at [https://github.com/openflighthpc/action-content](https://github.com/openflighthpc/action-content).
+
+This content and the accompanying materials are made available available
+under the terms of the Creative Commons Attribution-ShareAlike 4.0
+International License which is available at [https://creativecommons.org/licenses/by-sa/4.0/](https://creativecommons.org/licenses/by-sa/4.0/),
+or alternative license terms made available by Alces Flight Ltd -
+please direct inquiries about licensing to
+[licensing@alces-flight.com](mailto:licensing@alces-flight.com).
+
+Action Content is distributed in the hope that it will be useful, but
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR
+IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS OF
+TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR
+PURPOSE. See the [Creative Commons Attribution-ShareAlike 4.0
+International License](https://creativecommons.org/licenses/by-sa/4.0/) for more
+details.
