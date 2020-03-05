@@ -1,4 +1,4 @@
-#!/bin/bash
+# frozen_string_literal: true
 #==============================================================================
 # Copyright (C) 2020-present Alces Flight Ltd.
 #
@@ -26,31 +26,10 @@
 # https://github.com/openflighthpc/action-content
 #==============================================================================
 
-# Get the root power directory NOT the bin dir
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )"
+source "https://rubygems.org"
 
-# Create the nodes configuration file as it isn't checked into the repo
-touch $DIR/etc/nodes.yaml
+git_source(:github) {|repo_name| "https://github.com/#{repo_name}" }
 
-cat << EOF
-# NOTES:
-# 1) This output is sensitive! Please keep the jwt_shared_secret safe!
-# 2) This script is not rerunnable! Doing so will regenerate jwt_shared_secret
-# 3) The set -a (/+a) must be omitted when within an EnvironmentFile in systemd
-# 4) The unsets are optional if the env vars have not already been set
+gem 'thor'
+gem 'tty-editor'
 
-set -a
-
-commands_config_path=$DIR/etc/commands.yaml
-nodes_config_path=$DIR/etc/nodes.yaml
-working_directory_path=$DIR/libexec
-jwt_shared_secret=$(cat /dev/urandom | tr -dc 'a-zA-Z1-9' | fold -w 32 | head -n 1)
-
-set +a
-
-unset remote_url
-unset remote_cluster
-unset remote_jwt
-unset full_upstream
-unset log_level
-EOF
