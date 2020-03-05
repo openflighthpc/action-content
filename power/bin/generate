@@ -35,7 +35,9 @@ require 'bundler/setup'
 require 'erb'
 require 'ostruct'
 require 'thor'
+require 'tty/prompt'
 require 'securerandom'
+require 'yaml'
 
 ENV['THOR_SILENCE_DEPRECATION'] = 'true'
 
@@ -111,12 +113,42 @@ class GenerateCLI < Thor
     puts ERB.new(template, nil, '-').result(context.instance_eval { binding })
   end
 
+  desc 'aws-node NAME', 'Add/modify a node on AWS'
+  option :ec2_id, type: :string, desc: "Set the node's AWS EC2 ID"
+  option :region, type: :string, desc: "Set the AWS region the node is hosted in"
+  option :prompt, default: true, type: :boolean, desc: 'Do prompt for missing parameters'
+  def aws_node(name)
+    data = read_nodes
+    data[name] = {
+      'ranks' => ['aws'],
+      'ec2_id' => options.ec2_id,
+      'region' => options.region
+    }
+    if options.prompt
+      data[name]['region'] ||= prompt.ask('Which AWS region is the node in?')
+      data[name]['ec2_id'] ||= prompt.ask("What is the node's EC2 ID?")
+    end
+    write_nodes(data)
+  end
+
   private
+
+  def prompt
+    @prompt ||= TTY::Prompt.new
+  end
 
   def nodes_path
     @nodes_path ||= File.expand_path('etc/nodes.yaml', ROOT).tap do |path|
       FileUtils.touch path
     end
+  end
+
+  def read_nodes
+    YAML.load(File.read nodes_path) || {}
+  end
+
+  def write_nodes(data)
+    File.write(nodes_path, YAML.dump(data))
   end
 end
 
