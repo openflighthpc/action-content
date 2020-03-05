@@ -44,16 +44,27 @@ class GenerateCLI < Thor
   SERVER_VERSION = '0.2.1'
 
   desc 'server', 'Ouput a server configuration script'
-  option :aws_ak, type: 'string', aliases: '--aws-access-key',
-          desc: 'The AWS access key'
+  option :aws_aki, type: 'string', aliases: '--aws-access-key-id',
+          desc: 'The AWS access key identifier'
   option :aws_sak, type: 'string', aliases: '--aws-secret-access-key',
           desc: 'The AWS secret access key'
   def server
+    warns = []
+    warns << <<~WARN unless options.aws_aki
+      AWS_ACCESS_KEY_ID has not been set! AWS nodes will not function without it
+    WARN
+    warns << <<~WARN unless options.aws_sak
+      AWS_SECRET_ACCESS_KEY has not been set! AWS nodes will not function without it
+    WARN
+
     context = OpenStruct.new(
       root: ROOT,
       version: SERVER_VERSION,
       nodes_path: nodes_path,
-      jwt: SecureRandom.uuid
+      jwt: SecureRandom.uuid,
+      aws_aki: options.aws_aki,
+      aws_sak: options.aws_sak,
+      warns: warns
     )
 
     template = <<~'TEMPLATE'
@@ -64,12 +75,22 @@ class GenerateCLI < Thor
       # 4) The set -a (/+a) must be omitted when within an EnvironmentFile in systemd
       # 5) The unsets are optional if the env vars have not already been set
 
+      <% if warns.any? -%>
+      # WARNINGS:
+      <%= warns.map { |w| "# * #{w}" }.join %>
+      <% end -%>
       set -a
 
       commands_config_path=<%= root %>/etc/commands.yaml
       nodes_config_path=<%= nodes_path %>
       working_directory_path=<%= root %>/libexec
       jwt_shared_secret=<%= jwt %>
+      <% if aws_aki -%>
+      AWS_ACCESS_KEY_ID=<%= aws_aki %>
+      <% end -%>
+      <% if aws_sak -%>
+      AWS_SECRET_ACCESS_KEY=<%= aws_sak %>
+      <% end -%>
 
       set +a
 
