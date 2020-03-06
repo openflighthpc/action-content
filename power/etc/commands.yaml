@@ -25,12 +25,18 @@
 # https://github.com/openflighthpc/action-content
 #==============================================================================
 
+# The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
+# NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED",
+# "MAY", and "OPTIONAL" in this document are to be interpreted as
+# described in BCP 14 [RFC2119] [RFC8174] when, and only when, they
+# appear in all capitals, as shown here.
+
 __meta__:
   aws_vars: &aws_vars
     variables: [ec2_id, region]
 
 # NOTE: DEVELOPERS ONLY!
-# All implementations of the status command must output one of the following
+# All implementations of the status command MUST output one of the following
 # including the single new line character and set the status code
 # * "on\n" and exit 0 - The node is currently running
 # * "off\n" and exit 0 - The node is currently offline
@@ -65,21 +71,57 @@ status:
   ipmi:
     script: echo unknown; exit 1
 
+# NOTE: DEVELOPERS ONLY!
+# All implementations of the on command MUST output one of the following
+# including the single new line character and set the status code
+# * "starting\n" and exit 0 - If the command successfully "started" turning on
+# * "unknown\n" and exit 1 - All other conditions
+#
+# The above status codes as subject to the following observations:
+# * The 'starting' status SHOULD be returned if there is a reasonable
+#   suspicion the node will boot successfully.
+# * The 'starting' status MAY be returned before the node has successfully
+#   booted if waiting/ confirming the state is not feasible.
+# * The 'unknown' status SHOULD be returned if there is reasonable suspicion
+#   the boot will fail.
+# * The 'unknown' status SHOULD be returned if the node is already on
+# * The 'starting' exit code MAY be returned if determining the initial state
+#   of the node is not feasible.
+# * The command MUST NOT reboot a machine if it is already running
+# * Each implementation SHOULD be deterministic
 'on':
   help:
     summary: Turn the node(s) on
     description: >
-      Starts the boot process for a node or nodes. This command may only initiate
-      the boot without checking it completes successfully.
+      Starts the boot process for a node or nodes. This command will initiate
+      the boot process but should not be used determine if the node turned on.
+
+      The response is indeterminable if the node is already on. Regardless of
+      the response status, this command will not preform a reboot. Please use
+      the 'status' command to determine if a node is on.
   default:
-    script: |
-      echo Not Supported
-      exit 1
+    script: echo unknown; exit 1
   aws:
     <<: *aws_vars
     script: |
-      echo Implement AWS power on
-      exit 1
+      output=$(aws ec2 start-instances --instance-ids "$ec2_id" --region "$region")
+      echo Output From AWS Command >&2
+      echo "$output" >&2
+      status=$(cat <<EOF | ruby
+        require 'json'
+        string = <<~RUBY_EOF
+          $output
+        RUBY_EOF
+        puts JSON.parse(string)['StartingInstances'].first['CurrentState']['Name']
+      EOF
+      )
+      if [ "$status" = "pending" ]; then
+        echo starting
+        exit 0
+      else
+        echo unknown
+        exit 1
+      fi
   azure:
     script: |
       echo Implement AZURE power on
