@@ -35,7 +35,7 @@ __meta__:
   aws_vars: &aws_vars
     variables: [ec2_id, region]
 
-# NOTE: DEVELOPERS ONLY!
+# NOTE: Status Specification
 # All implementations of the status command MUST output one of the following
 # including the single new line character and set the status code
 # * "on\n" and exit 0 - The node is currently running
@@ -71,7 +71,7 @@ status:
   ipmi:
     script: echo unknown; exit 1
 
-# NOTE: DEVELOPERS ONLY!
+# NOTE: On Specification
 # All implementations of the on command MUST output one of the following
 # including the single new line character and set the status code
 # * "starting\n" and exit 0 - If the command successfully "started" turning on
@@ -111,7 +111,7 @@ status:
     # but it simplifies the command. Revisit as necessary
     script: |
       aws ec2 start-instances --instance-ids "$ec2_id" --region "$region" >/dev/null 2>&1
-      if [ $? ] ; then
+      if [ $? -eq 0 ] ; then
         echo starting
         exit 0
       else
@@ -127,7 +127,7 @@ status:
       echo Implment IPMI power on
       exit 255
 
-# NOTE: DEVELOPERS ONLY!
+# NOTE: Off Specification
 # All implementations of the on command MUST output one of the following
 # including the single new line character and set the status code
 # * "stopping\n" and exit 0 - If the command successfully initiate a shutdown
@@ -160,7 +160,7 @@ status:
     # was already running by parsing the JSON response. Revisit as required
     script: |
       aws ec2 stop-instances --instance-ids "$ec2_id" --region "$region" >/dev/null 2>&1
-      if [ $? ] ; then
+      if [ $? -eq 0 ] ; then
         echo stopping
         exit 0
       else
@@ -176,21 +176,49 @@ status:
       echo Implment IPMI power off
       exit 255
 
+# NOTE: Reboot Specification
+# All implementations of the on command MUST output one of the following
+# including the single new line character and set the status code
+# * "rebooting\n" and exit 0 - If the command successfully initiate a boot/reboot
+# * "unknown\n" and exit 1 - All other conditions
+#
+# The above status codes are subject to the following observations:
+# * The command MUST attempt a shutdown before rebooting if the node
+#   is already running. This MAY be either a soft or hard shutdown
+# * Regular booting from an offline state SHOULD NOT be supported. Regular
+#   boots MAY be supported if it is not feasible to disable them. The 'unknown'
+#   status MUST be return if regular boots are not supported.
+# * The 'reboot' status MUST be returned if the node successfully boots
+#   regardless of its initial state
+# * The 'reboot' status SHOULD be returned if there is a reasonable
+#   suspicion the node will successfully complete the (re)boot process
+# * The 'reboot' status MAY be returned before the node has
+#   (re)booted if waiting/ confirming the state is not feasible.
+# * Each implementation SHOULD be deterministic
 reboot:
   help:
-    summary: Turn the node(s) reboot
+    summary: Initiate the reboot process for a node or nodes
     description: >
-      Starts the shutdown process for a node or nodes. This command may only initiate
-      the shutdown without checking it completes successfully.
+      Triggers the reboot process for a node or nodes. This may be either a
+      hard or soft restart depending on node configuration. This command will
+      does not wait for the node or nodes to fully boot.
+
+      The behaviour of this command is undefined for nodes which are offline.
+      A subsequent call to the 'on' command will start any offline nodes, without
+      effecting those which are running.
   default:
-    script: |
-      echo Not Supported
-      exit 255
+    script: echo unknown; exit 1
   aws:
     <<: *aws_vars
     script: |
-      echo Implement AWS power reboot
-      exit 255
+      aws ec2 reboot-instances --instance-ids "$ec2_id" --region "$region" >/dev/null 2>&1
+      if [ $? -eq 0 ] ; then
+        echo rebooting
+        exit 0
+      else
+        echo unknown
+        exit 1
+      fi
   azure:
     script: |
       echo Implement AZURE power reboot
