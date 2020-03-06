@@ -77,7 +77,7 @@ status:
 # * "starting\n" and exit 0 - If the command successfully "started" turning on
 # * "unknown\n" and exit 1 - All other conditions
 #
-# The above status codes as subject to the following observations:
+# The above status codes are subject to the following observations:
 # * The 'starting' status SHOULD be returned if there is a reasonable
 #   suspicion the node will boot successfully.
 # * The 'starting' status MAY be returned before the node has successfully
@@ -91,7 +91,7 @@ status:
 # * Each implementation SHOULD be deterministic
 'on':
   help:
-    summary: Turn the node(s) on
+    summary: Initiate the boot process for a node or nodes
     description: >
       Starts the boot process for a node or nodes. This command will initiate
       the boot process but should not be used determine if the node turned on.
@@ -121,35 +121,60 @@ status:
   azure:
     script: |
       echo Implement AZURE power on
-      exit 1
+      exit 255
   ipmi:
     script: |
       echo Implment IPMI power on
-      exit 1
+      exit 255
 
+# NOTE: DEVELOPERS ONLY!
+# All implementations of the on command MUST output one of the following
+# including the single new line character and set the status code
+# * "stopping\n" and exit 0 - If the command successfully initiate a shutdown
+# * "unknown\n" and exit 1 - All other conditions
+#
+# The above status codes are subject to the following observations:
+# * The 'stopping' status SHOULD be returned if there is a reasonable
+#   suspicion the node will shutdown regardless of means
+#   This includes but is not limited to graceful or abrupt shutdowns
+# * The 'stopping' status MAY be returned before the node has
+#   shutdown if waiting/ confirming the state is not feasible.
+# * The 'unknown' status SHOULD be returned if the node is already off
+# * The 'stopping' exit code MAY be returned if determining the initial state
+#   of the node is not feasible.
+# * Each implementation SHOULD be deterministic
 'off':
   help:
-    summary: Turn the node(s) off
+    summary: Initiate the shutdown process for a node or nodes
     description: >
-      Starts the shutdown process for a node or nodes. This command may only initiate
-      the shutdown without checking it completes successfully.
+      Starts the shutdown process for a node or nodes. This command will initiate
+      the shutdown process but must not be used to determine if a node is off.
+
+      The response is indeterminable if the node is already off. Please use
+      the 'status' command to determine if a node is off.
   default:
-    script: |
-      echo Not Supported
-      exit 1
+    script: echo unknown; exit 1
   aws:
     <<: *aws_vars
+    # NOTE: Similarly to the aws on command, it is possible to determine if the node
+    # was already running by parsing the JSON response. Revisit as required
     script: |
-      echo Implement AWS power off
-      exit 1
+      aws ec2 stop-instances --instance-ids "$ec2_id" --region "$region" >/dev/null 2>&1
+      if [ $? ] ; then
+        echo stopping
+        exit 0
+      else
+        echo unknown
+        exit 1
+      fi
   azure:
     script: |
       echo Implement AZURE power off
-      exit 1
+      exit 255
   ipmi:
     script: |
       echo Implment IPMI power off
-      exit 1
+      exit 255
 
 reboot:
   help:
@@ -160,18 +185,18 @@ reboot:
   default:
     script: |
       echo Not Supported
-      exit 1
+      exit 255
   aws:
     <<: *aws_vars
     script: |
       echo Implement AWS power reboot
-      exit 1
+      exit 255
   azure:
     script: |
       echo Implement AZURE power reboot
-      exit 1
+      exit 255
   ipmi:
     script: |
       echo Implment IPMI power reboot
-      exit 1
+      exit 255
 
