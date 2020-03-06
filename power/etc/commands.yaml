@@ -87,7 +87,7 @@ status:
 # * The 'unknown' status SHOULD be returned if the node is already on
 # * The 'starting' exit code MAY be returned if determining the initial state
 #   of the node is not feasible.
-# * The command MUST NOT reboot a machine if it is already running
+# * The command MUST NOT reboot the node if it is already on
 # * Each implementation SHOULD be deterministic
 'on':
   help:
@@ -103,19 +103,15 @@ status:
     script: echo unknown; exit 1
   aws:
     <<: *aws_vars
+    # NOTE: It is possible to parse the response from the aws command to
+    # determine if the node was already running. However this either requires
+    # a nasty ruby command or a dependency on jq.
+    #
+    # Checking the exit status with $? can not distinguish between the two,
+    # but it simplifies the command. Revisit as necessary
     script: |
-      output=$(aws ec2 start-instances --instance-ids "$ec2_id" --region "$region")
-      echo Output From AWS Command >&2
-      echo "$output" >&2
-      status=$(cat <<EOF | ruby
-        require 'json'
-        string = <<~RUBY_EOF
-          $output
-        RUBY_EOF
-        puts JSON.parse(string)['StartingInstances'].first['CurrentState']['Name']
-      EOF
-      )
-      if [ "$status" = "pending" ]; then
+      aws ec2 start-instances --instance-ids "$ec2_id" --region "$region" >/dev/null 2>&1
+      if [ $? ] ; then
         echo starting
         exit 0
       else
