@@ -34,6 +34,8 @@
 __meta__:
   aws_vars: &aws_vars
     variables: [ec2_id, region]
+  azure_vars: &azure_vars
+    variables: [resource_group]
 
 # NOTE: Status Specification
 # All implementations of the status command MUST output one of the following
@@ -67,7 +69,25 @@ status:
           ;;
       esac
   azure:
-    script: echo unknown; exit 1
+    <<: *azure_vars
+    script: |
+      status=$(az vm get-instance-view --resource-group "$resource_group" \
+                                       --name "$name" \
+                                       --query instanceView.statuses[1].code)
+      case "$status" in
+        \"PowerState/running\")
+          echo on
+          exit 0
+          ;;
+        \"PowerState/deallocated\")
+          echo off
+          exit 0
+          ;;
+        *)
+          echo unknown
+          exit 1
+          ;;
+      esac
   ipmi:
     script: echo unknown; exit 1
 
@@ -119,6 +139,7 @@ status:
         exit 1
       fi
   azure:
+    <<: *azure_vars
     script: |
       echo Implement AZURE power on
       exit 255
@@ -168,6 +189,7 @@ status:
         exit 1
       fi
   azure:
+    <<: *azure_vars
     script: |
       echo Implement AZURE power off
       exit 255
@@ -220,6 +242,7 @@ reboot:
         exit 1
       fi
   azure:
+    <<: *azure_vars
     script: |
       echo Implement AZURE power reboot
       exit 255
