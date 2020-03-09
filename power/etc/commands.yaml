@@ -35,7 +35,7 @@ __meta__:
   aws_vars: &aws_vars
     variables: [ec2_id, region]
   azure_vars: &azure_vars
-    variables: [resource_group]
+    variables: [resource_group, azure_name]
 
 # NOTE: Status Specification
 # All implementations of the status command MUST output one of the following
@@ -45,7 +45,7 @@ __meta__:
 # * "unknown\n" and exit 1 - The node' status is undetermined
 status:
   help:
-    summary: Check if the node is running
+    summary: Check if a node or nodes are on/off
   default:
     script: echo unknown; exit 1
   aws:
@@ -72,7 +72,7 @@ status:
     <<: *azure_vars
     script: |
       status=$(az vm get-instance-view --resource-group "$resource_group" \
-                                       --name "$name" \
+                                       --name "$azure_name" \
                                        --query instanceView.statuses[1].code)
       case "$status" in
         \"PowerState/running\")
@@ -141,8 +141,16 @@ status:
   azure:
     <<: *azure_vars
     script: |
-      echo Implement AZURE power on
-      exit 255
+      az vm start --resource-group "$resource_group" \
+                  --name "$azure_name" \
+                  --no-wait
+      if [ $? -eq 0 ] ; then
+        echo starting
+        exit 0
+      else
+        echo unknown
+        exit 1
+      fi
   ipmi:
     script: |
       echo Implment IPMI power on
@@ -191,8 +199,16 @@ status:
   azure:
     <<: *azure_vars
     script: |
-      echo Implement AZURE power off
-      exit 255
+      az vm deallocate --resource-group "$resource_group" \
+                       --name "$azure_name" \
+                       --no-wait
+      if [ $? -eq 0 ] ; then
+        echo stopping
+        exit 0
+      else
+        echo unknown
+        exit 1
+      fi
   ipmi:
     script: |
       echo Implment IPMI power off
